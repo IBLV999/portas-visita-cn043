@@ -31,9 +31,9 @@ td.n{font-weight:700}tr.m td.n{color:var(--or)}
 <canvas id="cv"></canvas><div id="lb"></div>
 <div id="pn">
  <div id="hd"><h1>CN-043 · Portas de visita · R01</h1>
- <p>03.NAV.CN043-12.100.02.02.00 · atende os comentários do Dmitry (RAL), 04/11/2026 · 30 portas da R01 + PV-31/32 propostas · PV-19 girada para longitudinal (proposta) · PV-11/12/25/26/29/30 movidas (proposta) · <b>rasa (flush) só no convés externo: PV-20/21/22/23</b>; as outras sobrepostas (braçola), 06/11/2026 · estrutura: STEPs U01/U02/U03 da RAL (30/10)</p></div>
+ <p>03.NAV.CN043-12.100.02.02.00 · atende os comentários do Dmitry (RAL), 04/11/2026 · 32 portas, como no PDF R01 de 06/11: PV-11/12 na R00, PV-25/26 FR 25½, PV-29/30 FR 34½, PV-19/31 longitudinais na baia FR 39–40, PV-32 no tanque de óleo lubrificante do MCP BB · <b>rasa (flush) só no convés externo: PV-20/21/22/23</b>; as outras sobrepostas (braçola), 06/11/2026 · estrutura: STEPs U01/U02/U03 da RAL (30/10)</p></div>
  <div id="ct">
-  <div class="lg"><span><i style="background:#1e6b34"></i>sobreposta</span><span><i style="background:#39c0c0"></i>rasa (flush)</span><span><i style="background:var(--or)"></i>nº laranja: mudou na R01 (20)</span><span><i style="background:var(--am)"></i>selecionada</span></div>
+  <div class="lg"><span><i style="background:#1e6b34"></i>sobreposta</span><span><i style="background:#39c0c0"></i>rasa (flush)</span><span><i style="background:var(--or)"></i>nº laranja: mudou na R01 (22)</span><span><i style="background:var(--am)"></i>selecionada</span></div>
   <label><input type="checkbox" id="cE" checked> estrutura</label>
   <label>opacidade <input type="range" id="rO" min="0.05" max="1" step="0.05" value="0.25"></label>
   <label>corte x (FR) <input type="range" id="rX0" min="0" max="43" step="0.5" value="0"><input type="range" id="rX1" min="0" max="43" step="0.5" value="43"></label>
@@ -1161,15 +1161,15 @@ const PV={},lb=document.getElementById('lb');
 D.info.forEach(p=>{
   const m=new THREE.Mesh(geo(D.portas[p.n]),new THREE.MeshPhongMaterial({color:corP(p),shininess:40,clippingPlanes:clips}));
   m.userData=p;m.renderOrder=2;S.add(m);
-  const t=document.createElement('div');t.className='tg'+(p.mudou?' m':'');t.textContent=(p.prop?p.n+' · proposta':p.n)+(p.tipo==='FLUSH'?' · rasa':'');lb.appendChild(t);
+  const t=document.createElement('div');t.className='tg'+(p.mudou||p.prop?' m':'');t.textContent=p.n+(p.tipo==='FLUSH'?' · rasa':'');lb.appendChild(t);
   let gh=null;
   if(p.r00){gh=new THREE.Mesh(new THREE.SphereGeometry(0.09,16,12),new THREE.MeshBasicMaterial({color:0xff3b3b}));gh.position.set(p.r00.x/1000,p.r00.y/1000,p.r00.z/1000);gh.visible=false;S.add(gh)}
   PV[p.n]={m,t,p,gh,c:new THREE.Vector3(p.x/1000,p.y/1000,p.z/1000)};
 });
 // tabela
 const tb=document.getElementById('tb');
-D.info.forEach(p=>{const tr=document.createElement('tr');tr.id='r'+p.n;if(p.mudou)tr.className='m';
-  tr.innerHTML=`<td class="n">${p.n}</td><td>${p.fr.toFixed(1).replace('.',',')}</td><td>${p.x}</td><td>${p.y}</td><td>${p.z}</td><td>${p.tipo==='FLUSH'?'<b style="color:#39c0c0">rasa</b>':'sobreposta'}</td><td>${p.prop?'<b style="color:var(--am)">proposta</b>':(p.mudou?'mudou':'')}</td>`;
+D.info.forEach(p=>{const tr=document.createElement('tr');tr.id='r'+p.n;if(p.mudou||p.prop)tr.className='m';
+  tr.innerHTML=`<td class="n">${p.n}</td><td>${p.fr.toFixed(1).replace('.',',')}</td><td>${p.x}</td><td>${p.y}</td><td>${p.z}</td><td>${p.tipo==='FLUSH'?'<b style="color:#39c0c0">rasa</b>':'sobreposta'}</td><td>${(p.prop||p.mudou)?'mudou':''}</td>`;
   tr.onclick=()=>sel(p.n,true);tb.appendChild(tr)});
 // tanques
 const TQ=[],br=(x,c=1)=>x==null?'—':Number(x).toLocaleString('pt-BR',{minimumFractionDigits:c,maximumFractionDigits:c});
@@ -1204,8 +1204,8 @@ function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>
 function sel(n,voa){
   desmarcaT();if(atual)desmarca();
   atual=n;const a=PV[n];a.m.material.color.setHex(COR.s);a.t.classList.add('s');const tr=document.getElementById('r'+n);tr.classList.add('sel');tr.scrollIntoView({block:'nearest'});
-  const p=a.p;let h=`<b>PV-${p.n}</b> · FR ${p.fr.toFixed(1).replace('.',',')} · x ${p.x} · y ${p.y} · z ${p.z} mm<br>tipo: <b>${p.tipo==='FLUSH'?'RASA (flush, DMITRY-10): tampa 695x492x12,5 rente ao convés, anel 765x562x31,5 por baixo da chapa, abertura 584x381':'SOBREPOSTA: tampa aparafusada sobre braçola de 64 mm, abertura 600x400'}</b><br>${p.mudou&&!p.prop?'<span class="mu">local na R00:</span> ':''}${p.prop?'<b>PROPOSTA</b> (fora do PDF e do 3D): ':''}${esc(p.onde)}`;
-  if(p.mudou)h+=`<br><br><b>${p.prop?'Na R01, antes desta proposta:':'Mudança da R01'}</b> ${esc(p.r01||'')}<br><span class="mu">R00: x ${p.r00.x} · y ${p.r00.y} · z ${p.r00.z} → ${esc(p.delta)}</span>`;
+  const p=a.p;let h=`<b>PV-${p.n}</b> · FR ${p.fr.toFixed(1).replace('.',',')} · x ${p.x} · y ${p.y} · z ${p.z} mm<br>tipo: <b>${p.tipo==='FLUSH'?'RASA (flush, DMITRY-10): tampa 695x492x12,5 rente ao convés, anel 765x562x31,5 por baixo da chapa, abertura 584x381':'SOBREPOSTA: tampa aparafusada sobre braçola de 64 mm, abertura 600x400'}</b><br>${p.mudou&&!p.prop?'<span class="mu">local na R00:</span> ':''}${esc(p.onde)}`;
+  if(p.mudou)h+=`<br><br><b>${p.prop?'Antes, na R01 de 04/11 (de dia):':'Mudança da R01'}</b> ${esc(p.r01||'')}<br><span class="mu">R00: x ${p.r00.x} · y ${p.r00.y} · z ${p.r00.z} → ${esc(p.delta)}</span>`;
   document.getElementById('dt').innerHTML=h;
   if(voa){const d=cam.position.clone().sub(ctl.target);const L=Math.min(Math.max(d.length(),3),6);d.setLength(L);ctl.target.copy(a.c);cam.position.copy(a.c).add(d)}
 }
